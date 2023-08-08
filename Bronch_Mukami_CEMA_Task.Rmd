@@ -1,0 +1,260 @@
+---
+title: "Bronch Mukami"
+author: " "
+date: "2023-07-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## CEMA Internship Task
+You have been provided with a dataset (in the data folder above) which contains monthly data for children <5 years, disaggregated at a county level for the period January 2021 to June 2023.
+
+### The dataset contains the following variables:
+
+1) Period (months from January 2021 to June 2023)
+2) County (the 47 counties in Kenya)
+3) Total number of children dewormed (Total Dewormed)
+4) Number of children <5 years with acute malnutrition (Acute Malnutrition)
+5) Number of children stunted (0-6 months, 6-23 months, 24-59 months)
+6) Number of children <5 years with diarrhea (Diarrhea cases)
+7) Number of children who are underweight (0-6 months, 6-23 months, 24-59 months)
+
+### Your task is to:
+
+1) Conduct exploratory data analysis
+2) State an appropriate research question you would want to answer from the data
+3) Carry out appropriate data analysis to address the question you have stated above
+
+### Research Question
+Is there a relationship between the prevalence of acute malnutrition and other indices of stunting and underweight across various age groups in various counties over time?
+
+```{r}
+#import the libraries
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+#loading the dataset
+taskdf= read.csv("https://raw.githubusercontent.com/cema-uonbi/internship_task/main/data/cema_internship_task_2023.csv")
+head(taskdf)
+```
+
+### 1) Data Preprocessing
+
+```{r}
+#to get the data structure 
+str(taskdf)
+```
+```{r}
+#to get a data summary
+summary(taskdf)
+```
+```{r}
+#to check the shape of the data
+dim(taskdf)
+```
+
+```{r}
+#to check for null values
+null_values <- is.na(taskdf)
+
+#to count the number of null values in each column
+col_null_counts <- colSums(null_values)
+
+#to display the count of null values for each column
+print(col_null_counts)
+```
+```{r}
+#to remove rows with null values
+taskdf_clean <- taskdf[complete.cases(taskdf),]
+
+#to check the number of rows in the cleaned data frame
+nrow(taskdf_clean)
+```
+```{r}
+head(taskdf_clean)
+```
+```{r}
+#convert all column names to lower case
+names(taskdf_clean) <- tolower(names(taskdf_clean))
+head(taskdf_clean)
+```
+
+```{r}
+names(taskdf_clean)
+```
+
+```{r}
+#to rename some columns
+taskdf_clean <- taskdf_clean %>%
+  rename(
+    `total-dewormed` = total.dewormed,
+    `acute-malnutrition` = acute.malnutrition,
+    `stunted6-23months` = stunted.6.23.months,
+    `stunted0-6months` = stunted.0..6.months,
+    `stunted24-59months` = stunted.24.59.months,
+    `diarrhoea-cases` = diarrhoea.cases,
+    `underweight0-6months` = underweight.0..6.months,
+    `underweight6-23months` = underweight.6.23.months,
+    `underweight24-59months` = underweight.24.59.months
+  )
+names(taskdf_clean)
+```
+
+### 2) Exploratory Data Analysis
+```{r}
+#to get unique values of county column
+unique_counties <- unique(taskdf_clean$county)
+print(unique_counties)
+
+#to get the number of unique values in county column
+num_unique_counties <- length(unique_counties)
+print(num_unique_counties)
+```
+#### * This shows that there is complete data from 44 out of 47 counties in Kenya
+
+```{r}
+library(dplyr)
+
+#convert 'period' column to Date class with the correct year
+taskdf_clean$period <- as.Date(paste0("01-", taskdf_clean$period), format = "%d-%b-%y")
+
+#group by county and year, and summarize to find maximum and minimum values
+max_min_summary <- taskdf_clean %>%
+  group_by(county, year = format(period, "%Y")) %>%
+  summarize(
+    max_dewormed = max(`total-dewormed`, na.rm = TRUE),
+    min_dewormed = min(`total-dewormed`, na.rm = TRUE),
+    max_acute_malnutrition = max(`acute-malnutrition`, na.rm = TRUE),
+    min_acute_malnutrition = min(`acute-malnutrition`, na.rm = TRUE),
+    max_stunted6_23months = max(`stunted6-23months`, na.rm = TRUE),
+    min_stunted6_23months = min(`stunted6-23months`, na.rm = TRUE),
+    max_stunted0_6months = max(`stunted0-6months`, na.rm = TRUE),
+    min_stunted0_6months = min(`stunted0-6months`, na.rm = TRUE),
+    max_stunted24_59months = max(`stunted24-59months`, na.rm = TRUE),
+    min_stunted24_59months = min(`stunted24-59months`, na.rm = TRUE),
+    max_underweight0_6months = max(`underweight0-6months`, na.rm = TRUE),
+    min_underweight0_6months = min(`underweight0-6months`, na.rm = TRUE),
+    max_underweight6_23months = max(`underweight6-23months`, na.rm = TRUE),
+    min_underweight6_23months = min(`underweight6-23months`, na.rm = TRUE),
+    max_underweight24_59months = max(`underweight24-59months`, na.rm = TRUE),
+    min_underweight24_59months = min(`underweight24-59months`, na.rm = TRUE)
+  )
+
+max_min_summary
+
+```
+
+#### 2.1 Correlation of Variables
+```{r}
+#select numeric columns for correlation matrix calculation
+numeric_columns <- taskdf_clean[, sapply(taskdf_clean, is.numeric)]
+
+#calculate the correlation matrix
+correlation_matrix <- cor(numeric_columns, use = "complete.obs")
+print(correlation_matrix)
+
+```
+
+```{r}
+#plot correlation matrix as a heatmap
+install.packages("corrplot")
+library(corrplot)
+
+corrplot(correlation_matrix, method = "color", tl.cex = 0.7, tl.col = "black")
+```
+
+#### 2.2 Visualizations
+```{r}
+#creating scatter plots
+library(ggplot2)
+ggplot(taskdf_clean, aes(x = `total-dewormed`, y = `acute-malnutrition`, color= "red")) +
+  geom_point() +
+  labs(x = "Total Dewormed", y = "Acute Malnutrition") +
+  ggtitle("Scatter Plot: Total Dewormed vs. Acute Malnutrition")
+
+```
+```{r}
+#create scatter plots for acute malnutrition vs. stunting indicators
+ggplot(taskdf_clean, aes(x = `acute-malnutrition`, y = `stunted0-6months`, color= "blue")) +
+  geom_point() +
+  labs(x = "Prevalence of Acute Malnutrition", y = "Stunted 0-6 months") +
+  ggtitle("Scatter Plot: Acute Malnutrition vs. Stunted 0-6 months")
+
+ggplot(taskdf_clean, aes(x = `acute-malnutrition`, y = `stunted6-23months`, color="orange")) +
+  geom_point() +
+  labs(x = "Prevalence of Acute Malnutrition", y = "Stunted 6-23 months") +
+  ggtitle("Scatter Plot: Acute Malnutrition vs. Stunted 6-23 months")
+
+ggplot(taskdf_clean, aes(x = `acute-malnutrition`, y = `stunted24-59months`, color="magenta")) +
+  geom_point() +
+  labs(x = "Prevalence of Acute Malnutrition", y = "Stunted 24-59 months") +
+  ggtitle("Scatter Plot: Acute Malnutrition vs. Stunted 24-59 months")
+
+```
+```{r}
+ggplot(taskdf_clean, aes(x = period, y = `acute-malnutrition`, color="blue")) +
+  geom_area() +
+  labs(x = "Period", y = "Acute Malnutrition") +
+  ggtitle("Acute Malnutrition over Time") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+
+```{r}
+install.packages("RColorBrewer")
+library(RColorBrewer)
+```
+
+```{r}
+#filter the data to include only the relevant stunting and underweight indicators
+stunting_indicators <- c("stunted0-6months", "stunted6-23months", "stunted24-59months")
+underweight_indicators <- c("underweight0-6months", "underweight6-23months", "underweight24-59months")
+
+stunting_df <- taskdf_clean[, c("period", stunting_indicators)]
+underweight_df <- taskdf_clean[, c("period", underweight_indicators)]
+
+#melt the data to long format for line plotting
+install.packages("reshape2")
+library(reshape2)
+
+stunting_melted <- melt(stunting_df, id.vars = "period")
+underweight_melted <- melt(underweight_df, id.vars = "period")
+
+#create custom color palettes for stunting and underweight indicators
+library(RColorBrewer)
+
+stunting_color_palette <- brewer.pal(n = length(stunting_indicators), name = "Set2")
+underweight_color_palette <- brewer.pal(n = length(underweight_indicators), name = "Paired")
+
+#create area plots for stunting indicators
+ggplot(stunting_melted, aes(x = period, y = value, fill = variable)) +
+  geom_area() +
+  scale_fill_manual(values = stunting_color_palette) +  # Use stunting color palette
+  labs(x = "Period", y = "Prevalence", fill = "Stunting Indicator") +
+  ggtitle("Time Series of Stunting Indicators") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#create area plots for underweight indicators
+ggplot(underweight_melted, aes(x = period, y = value, fill = variable)) +
+  geom_area() +
+  scale_fill_manual(values = underweight_color_palette) +  # Use underweight color palette
+  labs(x = "Period", y = "Prevalence", fill = "Underweight Indicator") +
+  ggtitle("Time Series of Underweight Indicators") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+### 3) Results and Conclusion
+* There is a Positive Correlation between the Underweight Indicators and the Stunting Indicators respectively per their ages i.e children who were underweight(0-6)months may also have been stunted at (0-6)months.
+
+* The number of children who were stunted increased over the years with the year 2023 being the peak. It is also noticeable that children who were stunted at (6-23) months were the most while those at (24-59)months were the least.
+
+* The number of children who were underweight increased over the years with the year 2023 being the peak. t is also noticeable that children who were stunted at (6-23) months were the most while those at (24-59)months were the least.
