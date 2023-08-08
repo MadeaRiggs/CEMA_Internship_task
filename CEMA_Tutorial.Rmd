@@ -1,0 +1,327 @@
+---
+title: "CEMA"
+output: html_document
+date: "2023-07-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+#vector of the sequence of numericals 1 to 100, as an object
+dat2 <- seq(1,100)
+dat2
+```
+
+
+```{r cars}
+#creatng an object- anything that takes a value
+dat1 <- read.csv("https://stats.idre.ucla.edu/stat/data/binary.csv")
+head(dat1)
+```
+```{r}
+#to create a vector in an object-array
+dat3 <- c(2,3,6,15)
+dat3
+```
+```{r}
+#to add a constant to each member of the array
+dat3 + 8
+```
+```{r}
+#to assign characters to the object
+dat4 <- c("two","three","six","fifteen")
+dat4
+```
+```{r}
+#to create a dataframe
+dat5 <- data.frame(dat4,dat3)
+dat5
+```
+
+## Functions in R
+```{r}
+print(mean(dat3))
+#to get standard deviation
+print(sd(dat3))
+```
+## Data Types
+```{r}
+#Doubles represent continuous variables e.g weight
+x <- c(3.14,5.7)
+#to confirm if it is a Double
+is.double(x)
+```
+```{r}
+#Integers are natural numbers eg counting variables
+nrhinos <- as.integer(88)
+typeof(nrhinos)
+
+nrhinos <- 88.0
+is.integer(nrhinos)
+```
+```{r}
+#Logical takes the values FALSE or TRUE
+g <- 99
+h <- g < 88
+h
+```
+```{r}
+#Characters represent a collection of characters between double quotes
+rstudents <- c("Elk","Dun","Sar","Mik")
+rstudents
+```
+```{r}
+#Factor - represents categorical data - the value range of which is a collection of codes, eg sex - male/female, education - informal/formal, infection status - positive/negative ..etc. 
+
+#Individual code of the factor is called Level of the factor
+
+educ <- factor(c("primary","secondary","primary","university","no education","secondary"))
+educ
+```
+## Data Importation
+```{r}
+#to check available datasets
+data()
+```
+
+```{r}
+install.packages("remotes")
+remotes::install_github("https://github.com/msberends/AMR")
+
+```
+
+```{r}
+#to import the WHONET dataset
+library(AMR)
+```
+```{r}
+data(WHONET)
+?WHONET
+head(WHONET,4)
+```
+```{r}
+#importing external files that you first need to upload
+#mydata1 <- read.csv(file.choose(), header=TRUE)
+
+#read.csv - is the function that instructs R that the data is saved as a .csv format, and use:
+
+#file.choose - opens a browser window enabling you to locate where the file is sitted
+
+#header=TRUE - instructs R to take the first row to contain the variable names
+
+#Text files - imported much the same way as above, using the function read.table, check ?read.table 
+
+#Excel files you will need the package xlsReadWrite and you will use the functions read.xls and write.xls
+
+#Databases: uses the following packages
+
+#RODBC - provide an interface for ODBC compliant databases (eg. MS Access, MS SQLServer, Oracle)
+
+#RMySQL - provide an interface to a MySQL database
+
+#RSQLite - interface with SQLite  
+```
+```{r}
+#to import from other statistical softwares e.g S, SAS, Epi info, Stata, SPSS, dBase…etc 
+install.packages("foreign")
+library(foreign)
+```
+## Dereferencing
+```{r}
+#Dereferencing means getting a specific part of an object. 
+a1 <- seq(from=11, to=53, by=3)
+a1
+```
+```{r}
+#to get specific elements of the array
+a1[c(3,6)]
+```
+```{r}
+#to create a matrix
+a2 <- matrix(a1, ncol=3, byrow=TRUE)
+a2
+```
+```{r}
+a3 <- matrix(a1, ncol=2, byrow=FALSE)
+a3
+```
+```{r}
+# selecting the 2nd column of the matrix
+a2[,2]
+
+# selecting the 3rd row of the matrix
+a2[3,]
+```
+```{r}
+a4 <- data.frame(a2)
+a4
+```
+```{r}
+# selecting column 3
+# variables (columns) can be addressed using the dollar sign $
+a4$X3
+```
+```{r}
+#to get the names of the columns of dataframe
+names(a4)
+
+#number of rows
+nrow(a4)
+
+#number of columns
+ncol(a4)
+
+#dimensions of the dataframe
+dim(a4)
+
+#length of a column use
+length(a4$X2)
+```
+```{r}
+#longitudinal cohort study (Infectious Diseases of East African Livestock - IDEAL study) investigating the infection experiences of 548 calves during their first year of life.
+
+ideal1 <- read.csv("https://raw.githubusercontent.com/cema-uonbi/R_course/main/ideal1.csv")
+ideal2 <- read.csv("https://raw.githubusercontent.com/cema-uonbi/R_course/main/ideal2.csv")
+```
+```{r}
+head(ideal1, 5)
+```
+```{r}
+# dimensions number of rows and columns
+print(dim(ideal1))
+print(dim(ideal2))
+```
+```{r}
+## Attributes of the dataset
+attributes(ideal1) 
+```
+```{r}
+# summary of the dataset
+summary(ideal1)
+```
+```{r}
+# description of the variables
+print(typeof(ideal1$CalfSex))
+print(typeof(ideal1$sublocation))
+```
+```{r}
+#to change CalfSex from integer to factor and recode the values from 1 to Male and 2 to Female
+ideal1$CalfSex <- factor(ideal1$CalfSex)
+is.factor(ideal1$CalfSex)
+```
+```{r}
+# determmine levels of factor calfsex
+# recode to ``Male" and ``Female"
+
+levels(ideal1$CalfSex)
+```
+```{r}
+# recode variable CalfSex
+# first create a new variable called CalfSex1
+# assign it values of CalfSex
+ideal1$CalfSex1 <- ideal1$CalfSex
+table(ideal1$CalfSex1)
+```
+```{r}
+ideal1$CalfSex1 <- ifelse(ideal1$CalfSex1==1,"Male","Female")
+table(ideal1$CalfSex1)
+```
+```{r}
+#check consistency of the two columns with CalfSex data
+
+table(ideal1$CalfSex,ideal1$CalfSex1)
+```
+```{r}
+# check consistency of the two columns with CalfSex data
+table(ideal1$CalfSex,ideal1$CalfSex1)
+```
+## Merging Data
+```{r}
+##CalfID is the unique identifier we will use to combine the two datasets
+ideal3 <- merge(ideal1,ideal2,by.x="CalfID",by.y="CalfID", all.x=T)
+dim(ideal3)
+```
+```{r}
+head(ideal3,4)
+```
+# Subsetting Data
+```{r}
+#if we wanted data from only one sublocation - Kidera
+idealkidera <- subset(ideal3, ideal3$sublocation=="Kidera")
+table(idealkidera$sublocation)
+```
+```{r}
+#data on only females from Kidera
+idealkideraF <- subset(ideal3, ideal3$sublocation=="Kidera" & 
+                         ideal3$CalfSex1=="female")
+head(idealkideraF, 5)
+```
+```{r}
+install.packages("haven")
+```
+```{r}
+install.packages("stringr")
+```
+```{r}
+#change the CADOB column in ideal 1 into a date
+ideal1$CADOB <- as.Date(ideal1$CADOB)
+#to check if it is adate column
+class(ideal1$CADOB)
+#it will return Double since dates in R are internally stored as the number of days 
+typeof(ideal1$CADOB)
+```
+```{r}
+#change the VisitDate column into ideal 2 into a date
+ideal2$VisitDate <- as.Date(ideal2$VisitDate)
+class(ideal2$VisitDate)
+```
+```{r}
+library(dplyr)
+
+ideal1<- ideal1 %>% 
+  mutate(CalfSex=recode(CalfSex, "1"="Male", "2"="Female")) %>%
+  mutate()
+head(ideal1)
+```
+```{r}
+#to recode the Reasonsloss column
+ideal1 <- ideal1 %>%
+  mutate(ReasonsLoss= recode(ReasonsLoss, "6"= "owner declined", "7"= "Death", "12"= "Relocation", "18"= "Given out")) %>%
+  mutate()
+head(ideal1)
+```
+```{r}
+library(dplyr)
+library(tidyr)
+
+# Unpivot the selected columns in 'ideal2' and store the result in 'ideal2a'
+ideal2a <- ideal2 %>%
+  pivot_longer(cols = c(ManualPCV, Theileria.spp., ELISA_mutans, ELISA_parva, Q.Strongyle.eggs),
+               names_to = "Variable",
+               values_to = "Value")
+
+# Display the first few rows of 'ideal2a'
+head(ideal2a)
+
+#the "names_to" parameter to create a new column named 'Variable' to store the original column names
+#the "values_to" parameter to create a new column named 'Value' to store the corresponding values.
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
